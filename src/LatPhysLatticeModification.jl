@@ -25,5 +25,12 @@
 module LatPhysLatticeModification
 
 
+# Using libraries
+using LatPhysBase
+
+
+
+
+
 # End of module
 end
