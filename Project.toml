@@ -1,0 +1,10 @@
+name = "LatPhysLatticeModification"
+uuid = "84ed28fe-f306-11e8-122d-2faba6147774"
+authors = ["Jan Attig <jattig@thp.Uni-Koeln.DE>"]
+version = "0.1.0"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
