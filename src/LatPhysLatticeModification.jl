@@ -31,6 +31,9 @@ using LatPhysBase
 
 
 
+# ADDING / REMOVING SITES
+include("site_add_remove.jl")
+
 
 # End of module
 end
