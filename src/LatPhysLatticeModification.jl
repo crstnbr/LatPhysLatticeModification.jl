@@ -35,7 +35,7 @@ using LatPhysBase
 include("site_add_remove.jl")
 
 # TRANSFORMATIONS IN REAL SPACE
-include("real_space_transformations.jl")
+include("real_space_transformation.jl")
 
 # End of module
 end
