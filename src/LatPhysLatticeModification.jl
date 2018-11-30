@@ -34,6 +34,8 @@ using LatPhysBase
 # ADDING / REMOVING SITES
 include("site_add_remove.jl")
 
+# TRANSFORMATIONS IN REAL SPACE
+include("real_space_transformations.jl")
 
 # End of module
 end
