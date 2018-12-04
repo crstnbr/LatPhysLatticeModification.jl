@@ -203,3 +203,65 @@ function removeSite!(
     # return the removed sites
     return sites_to_return
 end
+
+
+
+
+
+
+
+
+################################################################################
+#
+#   ADDING SINGLE SITES
+#       - to unitcells
+#       - to lattices
+#
+################################################################################
+
+# Add a single site to a unitcell
+function addSite!(
+            unitcell :: U,
+            position :: Vector{<:Real},
+            label    :: L = getDefaultLabel(L)
+        ) :: S where {L,D,B,S<:AbstractSite{L,D},U<:AbstractUnitcell{S,B}}
+
+    # create a new site
+    site = newSite(S, position, label)
+
+    # obtain the list of sites in the unitcell
+    site_list = sites(unitcell)
+    # push to the list of sites
+    push!(site_list, site)
+    # set the list of sites in the unitcell
+    sites!(unitcell, sites_list)
+
+    # return the new site
+    return site
+end
+
+
+# Add a single site to a lattice
+function addSite!(
+            lattice  :: LA,
+            position :: Vector{<:Real},
+            label    :: L = getDefaultLabel(L)
+        ) :: S where {L,D,B,S<:AbstractSite{L,D},U,LA<:AbstractLattice{S,B,U}}
+
+    # create a new site
+    site = newSite(S, position, label)
+
+    # obtain the list of sites in the lattice
+    site_list = sites(lattice)
+    # push to the list of sites
+    push!(site_list, site)
+    # set the list of sites in the lattice
+    sites!(lattice, sites_list)
+
+    # return the new site
+    return site
+end
+
+
+# export the function
+export addSite!
