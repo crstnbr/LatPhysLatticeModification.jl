@@ -1,5 +1,5 @@
 # Function to relabel a lattice to bipartite labeling
-function relabelBipartite!(
+function relabelSitesBipartite!(
             lattice :: L,
             label_A :: LS,
             label_B :: LS,
@@ -97,15 +97,15 @@ function relabelBipartite!(
 end
 
 # wrapper using the default labels A and B
-function relabelBipartite!(
+function relabelSitesBipartite!(
         lattice :: L,
         seed_site_A :: Int64 = 1
     ) where {LS,D,S<:AbstractSite{LS,D},B,U,L<:AbstractLattice{S,B,U}}
 
     # call the general function
-    return relabelBipartite!(lattice, getDefaultLabelA(LS), getDefaultLabelB(LS), seed_site_A)
+    return relabelSitesBipartite!(lattice, getDefaultLabelA(LS), getDefaultLabelB(LS), seed_site_A)
 end
 
 
 # export the function
-export relabelBipartite!
+export relabelSitesBipartite!

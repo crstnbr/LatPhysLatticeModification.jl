@@ -41,8 +41,11 @@ include("real_space_transformation.jl")
 
 # RELABELING
 
-# setting labels to bipartite
+# setting labels of sites to bipartite
 include("labeling_bipartite.jl")
+
+# relabel all bonds to string
+include("labeling_to_string.jl")
 
 
 # End of module
