@@ -37,5 +37,13 @@ include("site_add_remove.jl")
 # TRANSFORMATIONS IN REAL SPACE
 include("real_space_transformation.jl")
 
+
+
+# RELABELING
+
+# setting labels to bipartite
+include("labeling_bipartite.jl")
+
+
 # End of module
 end
