@@ -47,6 +47,9 @@ include("labeling_bipartite.jl")
 # relabel all bonds to string
 include("labeling_to_string.jl")
 
+# relabel all sties to int
+include("labeling_to_int.jl")
+
 
 # End of module
 end
