@@ -18,5 +18,12 @@ function relabelBondsToString(
     )
 end
 
+function relabelBondsToString(
+            lattice :: L
+        ) :: L where {LS,D,N,S<:AbstractSite{LS,D},U,L<:AbstractLattice{S,Bond{String,N},U}}
+    # act as the identy as the bonds are already string labeled
+    return lattice
+end
+
 # export the relabeling function
 export relabelBondsToString
