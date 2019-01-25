@@ -1,6 +1,11 @@
+# TODO
 
-# Function to optimize lattice vectors
-function optimizeLatticeVectors2D!(unitcell::Unitcell; verbose::Bool=false)
+# Function to optimize lattice vectors in 2D
+function optimizeLatticeVectors!(
+            uc :: U
+            ;
+            verbose :: Bool = false
+        ) where {L,S,B<:AbstractBond{L,2},U<:AbstractUnitcell{S,B}}
     # init the loop by assuming one refolded a vector
     refolded_one_vector = true
     # as long as one vector was refolded, repeat this loop
@@ -8,17 +13,17 @@ function optimizeLatticeVectors2D!(unitcell::Unitcell; verbose::Bool=false)
         # init inside the loop by assuming one did not refold a vector
         refolded_one_vector = false
         # try a1
-        if dot(unitcell.lattice_vectors[1],unitcell.lattice_vectors[1]) > dot(unitcell.lattice_vectors[1].-unitcell.lattice_vectors[2], unitcell.lattice_vectors[1].-unitcell.lattice_vectors[2])
+        if dot(a1(uc),a1(uc)) > dot(a1(uc).-a2(uc), a1(uc).-a2(uc))
             # print
             if verbose
                 println("a1 --> a1 - a2")
             end
             # change the lattice vector
-            unitcell.lattice_vectors[1] = unitcell.lattice_vectors[1] .- unitcell.lattice_vectors[2]
+            latticeVectors!(uc, Vector{Float64}[a1(uc).-a2(uc), a2(uc)])
             # change all connections
-            for c in unitcell.connections
-                if c[4][1] != 0
-                    c[4] = (c[4][1], c[4][2]+c[4][1])
+            for b in bonds(uc)
+                if wrap(b)[1] != 0
+                    wrap!(b, (wrap(b)[1], wrap(b)[2]+wrap(b)[1]))
                 end
             end
             # did refold
