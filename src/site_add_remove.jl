@@ -128,9 +128,11 @@ function removeSite!(
     site_list = sites(unitcell)
     # build a index list
     indices_new = collect(1:length(site_list))
+    index_gets_removed = Bool[false for i in 1:numSites(unitcell)]
     # fill the new index list at positions of removed sites
     for i in index
         indices_new[i] = -1
+        index_gets_removed[i] = true
     end
     # fill the new list successively from smallest to largest
     if indices_new[1] == -1
@@ -144,13 +146,13 @@ function removeSite!(
         end
     end
     # get a new site list
-    site_list = S[site_list[i] for i in 1:length(site_list) if !(i in index)]
+    site_list = S[site_list[i] for i in 1:length(site_list) if !index_gets_removed[i]]
     # register new list of sites within the unitcell object
     sites!(unitcell, site_list)
 
 
     # get all bonds that are not connected to any removed site
-    bond_list = filter(b -> !(to(b) in index || from(b) in index), bonds(unitcell))
+    bond_list = filter(b -> !(index_gets_removed[to(b)] || index_gets_removed[from(b)]), bonds(unitcell))
     # relabeling of bond indices
     for b in bond_list
         # set the new indices
@@ -190,9 +192,11 @@ function removeSite!(
     site_list = sites(lattice)
     # build a index list
     indices_new = collect(1:length(site_list))
+    index_gets_removed = Bool[false for i in 1:numSites(lattice)]
     # fill the new index list at positions of removed sites
     for i in index
         indices_new[i] = -1
+        index_gets_removed[i] = true
     end
     # fill the new list successively from smallest to largest
     if indices_new[1] == -1
@@ -206,13 +210,13 @@ function removeSite!(
         end
     end
     # get a new site list
-    site_list = SL[site_list[i] for i in 1:length(site_list) if !(i in index)]
+    site_list = SL[site_list[i] for i in 1:length(site_list) if !index_gets_removed[i]]
     # register new list of sites within the lattice object
     sites!(lattice, site_list)
 
 
     # get all bonds that are not connected to any removed site
-    bond_list = filter(b -> !(to(b) in index || from(b) in index), bonds(lattice))
+    bond_list = filter(b -> !(index_gets_removed[to(b)] || index_gets_removed[from(b)]), bonds(lattice))
     # relabeling of bond indices
     for b in bond_list
         # set the new indices
