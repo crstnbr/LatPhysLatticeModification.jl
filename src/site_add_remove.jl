@@ -9,6 +9,9 @@
 #   - removing multiple sites
 #       - from unitcells
 #       - from lattices
+#   - removing disconnected sites
+#       - from unitcells
+#       - from lattices
 #
 #   - adding single sites
 #       - to unitcells
@@ -63,7 +66,7 @@ end
 function removeSite!(
         lattice :: L,
         index   :: Integer
-    ) :: S where {D,N,LS,LB, S<:AbstractSite{LS,D}, B<:AbstractBond{LB,N}, U<:AbstractUnitcell{S,B},
+    ) :: SL where {D,N,LS,LB, S<:AbstractSite{LS,D}, B<:AbstractBond{LB,N}, U<:AbstractUnitcell{S,B},
         DL,NL,LSL,LBL,SL<:AbstractSite{LSL,DL}, BL<:AbstractBond{LBL,NL}, L<:AbstractLattice{SL,BL,U}}
 
     # store the site to be removed
@@ -102,11 +105,20 @@ export removeSite!
 #
 ################################################################################
 
+# Remove multiple sites from a unitcell (and return them)
+function removeSite!(
+        unitcell :: U,
+        index    :: Integer...
+    ) :: Vector{S} where {D,N,LS,LB, S<:AbstractSite{LS,D}, B<:AbstractBond{LB,N}, U<:AbstractUnitcell{S,B}}
+
+    # return the respective function
+    return removeSite!(unitcell, unique(index))
+end
 
 # Remove multiple sites from a unitcell (and return them)
 function removeSite!(
         unitcell :: U,
-        index    :: Integer ...
+        index    :: Vector{<:Integer}
     ) :: Vector{S} where {D,N,LS,LB, S<:AbstractSite{LS,D}, B<:AbstractBond{LB,N}, U<:AbstractUnitcell{S,B}}
 
     # get the list of sites
@@ -157,11 +169,22 @@ end
 function removeSite!(
         lattice :: L,
         index   :: Integer ...
-    ) :: Vector{S} where {D,N,LS,LB, S<:AbstractSite{LS,D}, B<:AbstractBond{LB,N}, U<:AbstractUnitcell{S,B},
+    ) :: Vector{SL} where {D,N,LS,LB, S<:AbstractSite{LS,D}, B<:AbstractBond{LB,N}, U<:AbstractUnitcell{S,B},
+        DL,NL,LSL,LBL,SL<:AbstractSite{LSL,DL}, BL<:AbstractBond{LBL,NL}, L<:AbstractLattice{SL,BL,U}}
+
+    # call the respective funtion
+    return removeSite!(lattice, unique(index))
+end
+
+# Remove multiple sites from a lattice (and return them)
+function removeSite!(
+        lattice :: L,
+        index   :: Vector{<:Integer}
+    ) :: Vector{SL} where {D,N,LS,LB, S<:AbstractSite{LS,D}, B<:AbstractBond{LB,N}, U<:AbstractUnitcell{S,B},
         DL,NL,LSL,LBL,SL<:AbstractSite{LSL,DL}, BL<:AbstractBond{LBL,NL}, L<:AbstractLattice{SL,BL,U}}
 
     # get the list of sites
-    sites_to_return = S[site(lattice,i) for i in index]
+    sites_to_return = SL[site(lattice,i) for i in index]
 
     # get all sites of the lattice
     site_list = sites(lattice)
@@ -207,6 +230,161 @@ end
 
 
 
+################################################################################
+#
+#   REMOVING DISCONNECTED SITES
+#       - from unitcells
+#       - from lattices
+#
+################################################################################
+
+# Remove multiple disconnected sites (from site with index) from a unitcell (and return them)
+function removeDisconnectedSites!(
+        unitcell :: U,
+        index    :: Integer = 1
+    ) :: Vector{S} where {D,N,LS,LB, S<:AbstractSite{LS,D}, B<:AbstractBond{LB,N}, U<:AbstractUnitcell{S,B}}
+
+    #######################################
+    # label all sites by Hoshen Kopelman
+    #######################################
+
+    # label variables
+    current_label = 2
+    site_labels = zeros(Int64, numSites(unitcell)) .- 1
+    site_labels[index] = 1
+
+    # the list of real labels
+    real_labels = zeros(Int64, numSites(unitcell)) .- 1
+    function reallabel(l :: Int64) :: Int64
+        if real_labels[l] == -1
+            return l
+        else
+            return reallabel(real_labels[l])
+        end
+    end
+
+    # the list of bonds (organized)
+    bond_list = organizedBondsFrom(unitcell)
+
+
+    # iterate over all sites
+    for s in 1:numSites(unitcell)
+        # skip the preset one
+        if s == index
+            continue
+        end
+        # check neighbors
+        for nb in bond_list[s]
+            # check if a label is already set
+            if site_labels[to(nb)] > 0
+                # set the current label
+                if site_labels[s] > 0 && reallabel(site_labels[s])==reallabel(site_labels[to(nb)])
+                    # do nothing
+                elseif site_labels[s] > 0
+                    # make new connection
+                    real_labels[max(site_labels[s], site_labels[to(nb)])] = min(site_labels[s], site_labels[to(nb)])
+                    # label accordingly
+                    site_labels[s] = min(site_labels[s], site_labels[to(nb)])
+                else
+                    # just use the label
+                    site_labels[s] = reallabel(site_labels[to(nb)])
+                end
+            end
+        end
+        # if still no label, create new one
+        if site_labels[s] < 0
+            site_labels[s] = current_label
+            current_label = current_label + 1
+        end
+    end
+
+    # replace all labels by their real counterpart
+    site_labels = map(s -> reallabel(s), site_labels)
+
+    # remove all labels that are not 1
+    sites_to_remove = [i for i in 1:numSites(unitcell) if site_labels[i]!=1]
+    if length(sites_to_remove) == 0
+        return S[]
+    else
+        return removeSite!(unitcell, sites_to_remove)
+    end
+end
+
+# Remove multiple disconnected sites (from site with index) from a lattice (and return them)
+function removeDisconnectedSites!(
+        lattice :: L,
+        index   :: Integer = 1
+    ) :: Vector{SL} where {D,N,LS,LB, S<:AbstractSite{LS,D}, B<:AbstractBond{LB,N}, U<:AbstractUnitcell{S,B},
+        DL,NL,LSL,LBL,SL<:AbstractSite{LSL,DL}, BL<:AbstractBond{LBL,NL}, L<:AbstractLattice{SL,BL,U}}
+
+    #######################################
+    # label all sites by Hoshen Kopelman
+    #######################################
+
+    # label variables
+    current_label = 2
+    site_labels = zeros(Int64, numSites(lattice)) .- 1
+    site_labels[index] = 1
+
+    # the list of real labels
+    real_labels = zeros(Int64, numSites(lattice)) .- 1
+    function reallabel(l :: Int64) :: Int64
+        if real_labels[l] == -1
+            return l
+        else
+            return reallabel(real_labels[l])
+        end
+    end
+
+    # the list of bonds (organized)
+    bond_list = organizedBondsFrom(lattice)
+
+
+    # iterate over all sites
+    for s in 1:numSites(lattice)
+        # skip the preset one
+        if s == index
+            continue
+        end
+        # check neighbors
+        for nb in bond_list[s]
+            # check if a label is already set
+            if site_labels[to(nb)] > 0
+                # set the current label
+                if site_labels[s] > 0 && reallabel(site_labels[s])==reallabel(site_labels[to(nb)])
+                    # do nothing
+                elseif site_labels[s] > 0
+                    # make new connection
+                    real_labels[max(site_labels[s], site_labels[to(nb)])] = min(site_labels[s], site_labels[to(nb)])
+                    # label accordingly
+                    site_labels[s] = min(site_labels[s], site_labels[to(nb)])
+                else
+                    # just use the label
+                    site_labels[s] = reallabel(site_labels[to(nb)])
+                end
+            end
+        end
+        # if still no label, create new one
+        if site_labels[s] < 0
+            site_labels[s] = current_label
+            current_label = current_label + 1
+        end
+    end
+
+    # replace all labels by their real counterpart
+    site_labels = map(s -> reallabel(s), site_labels)
+
+    # remove all labels that are not 1
+    sites_to_remove = [i for i in 1:numSites(lattice) if site_labels[i]!=1]
+    if length(sites_to_remove) == 0
+        return S[]
+    else
+        return removeSite!(lattice, sites_to_remove)
+    end
+end
+
+# export functions
+export removeDisconnectedSites!
 
 
 
