@@ -401,12 +401,12 @@ export removeDisconnectedSites!
 #
 ################################################################################
 
-# Add a single site to a unitcell
+# Add a single site to a unitcell and return its index in the list
 function addSite!(
             unitcell :: U,
             position :: Vector{<:Real},
             label    :: L = getDefaultLabel(L)
-        ) :: S where {L,D,B,S<:AbstractSite{L,D},U<:AbstractUnitcell{S,B}}
+        ) :: Int64 where {L,D,B,S<:AbstractSite{L,D},U<:AbstractUnitcell{S,B}}
 
     # create a new site
     site = newSite(S, position, label)
@@ -416,19 +416,19 @@ function addSite!(
     # push to the list of sites
     push!(site_list, site)
     # set the list of sites in the unitcell
-    sites!(unitcell, sites_list)
+    sites!(unitcell, site_list)
 
     # return the new site
-    return site
+    return length(site_list)
 end
 
 
-# Add a single site to a lattice
+# Add a single site to a lattice and return its index in the list
 function addSite!(
             lattice  :: LA,
             position :: Vector{<:Real},
             label    :: L = getDefaultLabel(L)
-        ) :: S where {L,D,B,S<:AbstractSite{L,D},U,LA<:AbstractLattice{S,B,U}}
+        ) :: Int64 where {L,D,B,S<:AbstractSite{L,D},U,LA<:AbstractLattice{S,B,U}}
 
     # create a new site
     site = newSite(S, position, label)
@@ -438,10 +438,10 @@ function addSite!(
     # push to the list of sites
     push!(site_list, site)
     # set the list of sites in the lattice
-    sites!(lattice, sites_list)
+    sites!(lattice, site_list)
 
     # return the new site
-    return site
+    return length(site_list)
 end
 
 

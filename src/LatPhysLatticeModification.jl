@@ -34,6 +34,11 @@ using LatPhysBase
 # ADDING / REMOVING SITES
 include("site_add_remove.jl")
 
+# ADDING / REMOVING BONDS
+include("bond_add_remove.jl")
+
+
+
 # TRANSFORMATIONS IN REAL SPACE
 include("real_space_transformation.jl")
 
